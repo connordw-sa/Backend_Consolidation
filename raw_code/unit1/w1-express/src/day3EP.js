@@ -4,6 +4,7 @@ import fs from 'fs-extra';
 import uniqid from 'uniqid';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { checkBlogPostSchema, checkValidationResult } from './day3Validator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -12,6 +13,10 @@ const __dirname = dirname(__filename);
 const blogsJSONPath = join(__dirname, 'blogPosts.json');
 
 const dayThreeRouter = express.Router();
+
+const getBlogs = () => JSON.parse(fs.readFileSync(blogsJSONPath));
+const writeBlogs = (blogsArray) =>
+  fs.writeFileSync(blogsJSONPath, JSON.stringify(blogsArray));
 
 /*
 The backend should include the following routes:
@@ -53,30 +58,30 @@ export default dayThreeRouter
       next(error);
     }
   })
-  .post('/blogPosts', (req, res, next) => {
-    try {
-      const { category, title, cover, readTime, author, content } = req.body;
-      const blogPost = {
-        id: uniqid(),
-        category,
-        title,
-        cover,
-        readTime,
-        author,
-        content,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      const fileasBuffer = fs.readFileSync(blogsJSONPath);
-      const fileasAString = fileasBuffer.toString();
-      const fileAsJSONArray = JSON.parse(fileasAString);
-      fileAsJSONArray.push(blogPost);
-      fs.writeFileSync(blogsJSONPath, JSON.stringify(fileAsJSONArray));
-      res.status(201).send({ id: blogPost.id });
-    } catch (error) {
-      next(error);
+  .post(
+    '/blogPosts',
+    checkBlogPostSchema,
+    checkValidationResult,
+    (req, res, next) => {
+      try {
+        const blogPost = {
+          ...req.body,
+          id: uniqid(),
+
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        const fileasBuffer = fs.readFileSync(blogsJSONPath);
+        const fileasAString = fileasBuffer.toString();
+        const fileAsJSONArray = JSON.parse(fileasAString);
+        fileAsJSONArray.push(blogPost);
+        fs.writeFileSync(blogsJSONPath, JSON.stringify(fileAsJSONArray));
+        res.status(201).send({ id: blogPost.id });
+      } catch (error) {
+        next(error);
+      }
     }
-  })
+  )
   .put('/blogPosts/:id', (req, res, next) => {
     try {
       const fileasBuffer = fs.readFileSync(blogsJSONPath);
