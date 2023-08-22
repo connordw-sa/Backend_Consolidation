@@ -16,10 +16,8 @@ server.use('/dayThree', blogsRouter);
 server.use(errorHandler);
 
 const port = process.env.PORT || 3001;
-console.log(listEndPoint(server));
-
-//start server
 
 server.listen(port, () => {
+  console.log(listEndPoint(server));
   console.log(`Server is running on port ${port}`);
 });
