@@ -1,9 +1,11 @@
+// Imports --------------------------------------------------------------------
 import express from 'express';
 import fs from 'fs-extra';
 import uniqid from 'uniqid';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
+// Variables ------------------------------------------------------------------
 const dayTwoRouter = express.Router();
 
 const authorsJSONPath = join(
@@ -26,6 +28,7 @@ function writeFile(updatedAuthors) {
   fs.writeFileSync(authorsJSONPath, JSON.stringify(updatedAuthors));
 }
 
+// Routes ---------------------------------------------------------------------
 export default dayTwoRouter
   .get('/authors', (req, res, next) => {
     try {
@@ -46,7 +49,6 @@ export default dayTwoRouter
       next(error);
     }
   })
-
   .post('/authors', (req, res, next) => {
     try {
       const authorSameEmail = findAuthorDetails('email', req.body.email);
@@ -89,7 +91,6 @@ export default dayTwoRouter
       next(error);
     }
   })
-
   .delete('/authors/:id', (req, res, next) => {
     try {
       const authorIndex = findAuthorDetails('id', req.params.id, true);
