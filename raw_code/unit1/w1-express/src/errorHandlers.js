@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 export const errorHandler = (err, req, res, next) => {
-  console.log('Error:', err);
+  console.log('Error:', err.message);
 
   switch (true) {
     case err.status === 400:

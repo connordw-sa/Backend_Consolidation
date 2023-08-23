@@ -21,8 +21,6 @@ const writeBlogs = (blogsArray) =>
 /*
 The backend should include the following routes:
 
- 
-
 GET /blogPosts => returns the list of blogposts
 GET /blogPosts /123 => returns a single blogpost
 POST /blogPosts => create a new blogpost

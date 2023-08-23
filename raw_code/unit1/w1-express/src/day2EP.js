@@ -1,9 +1,10 @@
 import express from 'express';
-import createError from 'http-errors';
 import fs from 'fs-extra';
 import uniqid from 'uniqid';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+
+const dayTwoRouter = express.Router();
 
 const authorsJSONPath = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -11,70 +12,58 @@ const authorsJSONPath = join(
 );
 
 const fileasBuffer = fs.readFileSync(authorsJSONPath);
-const fileasAString = fileasBuffer.toString();
-const fileasJSON = JSON.parse(fileasAString);
-const writeFile = fs.writeFileSync(authorsJSONPath, JSON.stringify(fileasJSON));
 
-const dayTwoRouter = express.Router();
+const authors = JSON.parse(fileasBuffer);
 
-/*The backend should include the following routes:
-GET /authors => returns the list of authors
-GET /authors/123 => returns a single author
-POST /authors => create a new author
-PUT /authors/123 => edit the author with the given id
-DELETE /authors/123 => delete the author with the given id*/
+function findAuthorDetails(property, value, returnIndex = false) {
+  if (returnIndex) {
+    return authors.findIndex((author) => author[property] === value);
+  }
+  return authors.find((author) => author[property] === value);
+}
+
+function writeFile(updatedAuthors) {
+  fs.writeFileSync(authorsJSONPath, JSON.stringify(updatedAuthors));
+}
 
 export default dayTwoRouter
   .get('/authors', (req, res, next) => {
     try {
-      fileasBuffer;
-      fileasAString;
-      fileasJSON;
-      res.send(fileasJSON);
+      res.send(authors);
     } catch (error) {
       next(error);
     }
   })
   .get('/authors/:id', (req, res, next) => {
     try {
-      fileasBuffer;
-      fileasAString;
-      fileasJSON;
-      const author = fileasJSON.find((author) => author.id === req.params.id);
-      if (author) {
-        res.send(author);
-      } else {
-        next(createError(404, `Author with id ${req.params.id} not found!`));
-      }
+      const author = findAuthorDetails('id', req.params.id);
+      if (!author)
+        return res
+          .status(404)
+          .send({ message: `Author with ID ${req.params.id} not found!` });
+      res.send(author);
     } catch (error) {
       next(error);
     }
   })
+
   .post('/authors', (req, res, next) => {
     try {
-      const { name, surname, email, dateOfBirth } = req.body;
-      const fileAsJson = JSON.parse(fs.readFileSync(authorsJSONPath));
-      const existingEmail = fileAsJson.find((author) => author.email === email);
-      if (existingEmail) {
-        res.status(400).send({ message: 'Email already in use!' });
+      const authorSameEmail = findAuthorDetails('email', req.body.email);
+      if (authorSameEmail) {
+        return res
+          .status(409)
+          .send({ message: `Email ${authorSameEmail.email} already in use!` });
       }
-
       const author = {
+        ...req.body,
         id: uniqid(),
-        name,
-        surname,
-        email,
-        dateOfBirth,
-        avatar: `https://ui-avatars.com/api/?name=${name}+${surname}`,
+        avatar: `https://ui-avatars.com/api/?name=${req.body.name}+${req.body.surname}`,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-
-      fileasBuffer;
-      fileasAString;
-      fileasJSON;
-      fileasJSON.push(author);
-      writeFile;
+      authors.push(author);
+      writeFile(authors);
       res.status(201).send({ id: author.id });
     } catch (error) {
       next(error);
@@ -82,46 +71,35 @@ export default dayTwoRouter
   })
   .put('/authors/:id', (req, res, next) => {
     try {
-      fileasBuffer;
-      fileasAString;
-      fileasJSON;
-      const authorIndex = fileasJSON.findIndex(
-        (author) => author.id === req.params.id
-      );
-      if (!authorIndex == -1) {
-        res
+      const authorIndex = findAuthorDetails('id', req.params.id, true);
+      if (authorIndex === -1) {
+        return res
           .status(404)
           .send({ message: `Author with ${req.params.id} not found!` });
       }
-      const previousAuthorData = fileasJSON[authorIndex];
       const changedAuthor = {
-        ...previousAuthorData,
+        ...authors[authorIndex],
         ...req.body,
         updatedAt: new Date(),
-        id: req.params.id,
       };
-      fileasJSON[authorIndex] = changedAuthor;
-      writeFile;
-      res.send(changedAuthor);
+      authors[authorIndex] = changedAuthor;
+      writeFile(authors);
+      res.status(200).send(changedAuthor);
     } catch (error) {
       next(error);
     }
   })
+
   .delete('/authors/:id', (req, res, next) => {
     try {
-      fileasBuffer;
-      fileasAString;
-      fileasJSON;
-      const author = fileasJSON.find((author) => author.id === req.params.id);
-      if (!author) {
-        res
+      const authorIndex = findAuthorDetails('id', req.params.id, true);
+      if (authorIndex === -1) {
+        return res
           .status(404)
           .send({ message: `Author with ${req.params.id} not found!` });
       }
-      const filteredAuthors = fileasJSON.filter(
-        (author) => author.id !== req.params.id
-      );
-      fs.writeFileSync(authorsJSONPath, JSON.stringify(filteredAuthors));
+      authors.splice(authorIndex, 1);
+      writeFile(authors);
       res.status(204).send();
     } catch (error) {
       next(error);

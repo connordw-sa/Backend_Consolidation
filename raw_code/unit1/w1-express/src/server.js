@@ -15,7 +15,7 @@ server.use('/dayTwo', authorsRouter);
 server.use('/dayThree', blogsRouter);
 server.use(errorHandler);
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT;
 
 server.listen(port, () => {
   console.log(listEndPoint(server));
