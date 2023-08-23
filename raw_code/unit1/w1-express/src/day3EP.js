@@ -1,3 +1,4 @@
+// Imports --------------------------------------------------------------------
 import express from 'express';
 import createError from 'http-errors';
 import fs from 'fs-extra';
@@ -6,52 +7,58 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { checkBlogPostSchema, checkValidationResult } from './day3Validator.js';
 
-const __filename = fileURLToPath(import.meta.url);
-
-const __dirname = dirname(__filename);
-
-const blogsJSONPath = join(__dirname, 'blogPosts.json');
-
+// Variables ------------------------------------------------------------------
 const dayThreeRouter = express.Router();
 
-const getBlogs = () => JSON.parse(fs.readFileSync(blogsJSONPath));
-const writeBlogs = (blogsArray) =>
-  fs.writeFileSync(blogsJSONPath, JSON.stringify(blogsArray));
+const blogPostsJSONPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  'blogPosts.json'
+);
 
-/*
-The backend should include the following routes:
+const blogPosts = JSON.parse(fs.readFileSync(blogPostsJSONPath));
 
-GET /blogPosts => returns the list of blogposts
-GET /blogPosts /123 => returns a single blogpost
-POST /blogPosts => create a new blogpost
-PUT /blogPosts /123 => edit the blogpost with the given id
-DELETE /blogPosts /123 => delete the blogpost with the given id
-*/
+function writeFile(updatedBlogPosts) {
+  fs.writeFileSync(blogPostsJSONPath, JSON.stringify(updatedBlogPosts));
+}
 
+function findBlogPostDetails(property, value, returnIndex = false) {
+  return returnIndex
+    ? blogPosts.findIndex((blogPost) => blogPost[property] === value)
+    : blogPosts.find((blogPost) => blogPost[property] === value);
+}
+
+// Routes ---------------------------------------------------------------------
 export default dayThreeRouter
   .get('/blogPosts', (req, res, next) => {
     try {
-      const fileasBuffer = fs.readFileSync(blogsJSONPath);
-      const fileasAString = fileasBuffer.toString();
-      const fileasJSON = JSON.parse(fileasAString);
-      res.send(fileasJSON);
+      const { title, authorName } = req.query;
+      const filteredPosts = title
+        ? blogPosts.filter((blogPost) =>
+            blogPost.title.toLowerCase().includes(title.toLowerCase())
+          )
+        : authorName
+        ? blogPosts.filter((blogPost) =>
+            blogPost.author.name
+              .toLowerCase()
+              .includes(authorName.toLowerCase())
+          )
+        : blogPosts;
+      const message =
+        (title && `No blogposts with title '${title}' found.`) ||
+        (authorName && `No blogposts by author '${authorName}' found.`);
+      res.send(filteredPosts.length === 0 ? { message } : filteredPosts);
     } catch (error) {
       next(error);
     }
   })
   .get('/blogPosts/:id', (req, res, next) => {
     try {
-      const fileasBuffer = fs.readFileSync(blogsJSONPath);
-      const fileasAString = fileasBuffer.toString();
-      const fileasJSON = JSON.parse(fileasAString);
-      const blogPost = fileasJSON.find(
-        (blogPost) => blogPost.id === req.params.id
-      );
-      if (blogPost) {
-        res.send(blogPost);
-      } else {
-        next(createError(404, `BlogPost with id ${req.params.id} not found!`));
-      }
+      const blogPost = findBlogPostDetails('id', req.params.id);
+      if (!blogPost)
+        return res
+          .status(404)
+          .send({ message: `Blog post with ID ${req.params.id} not found!` });
+      res.send(blogPost);
     } catch (error) {
       next(error);
     }
@@ -65,65 +72,51 @@ export default dayThreeRouter
         const blogPost = {
           ...req.body,
           id: uniqid(),
-
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-        const fileasBuffer = fs.readFileSync(blogsJSONPath);
-        const fileasAString = fileasBuffer.toString();
-        const fileAsJSONArray = JSON.parse(fileasAString);
-        fileAsJSONArray.push(blogPost);
-        fs.writeFileSync(blogsJSONPath, JSON.stringify(fileAsJSONArray));
-        res.status(201).send({ id: blogPost.id });
+        blogPosts.push(blogPost);
+        writeFile(blogPosts);
+        res.status(201).send(blogPost);
       } catch (error) {
         next(error);
       }
     }
   )
-  .put('/blogPosts/:id', (req, res, next) => {
-    try {
-      const fileasBuffer = fs.readFileSync(blogsJSONPath);
-      const fileasAString = fileasBuffer.toString();
-      let fileasJSON = JSON.parse(fileasAString);
-      const blogPostIndex = fileasJSON.findIndex(
-        (blogPost) => blogPost.id === req.params.id
-      );
-      if (!blogPostIndex == -1) {
-        res
-          .status(404)
-          .send({ message: `BlogPost with ${req.params.id} is not found!` });
+  .put(
+    '/blogPosts/:id',
+    checkBlogPostSchema,
+    checkValidationResult,
+    (req, res, next) => {
+      try {
+        const blogPostIndex = findBlogPostDetails('id', req.params.id, true);
+        if (blogPostIndex === -1)
+          return res
+            .status(404)
+            .send({ message: `Blog post with ID ${req.params.id} not found!` });
+        const previousBlogPostDetails = blogPosts[blogPostIndex];
+        const updatedBlogPost = {
+          ...previousBlogPostDetails,
+          ...req.body,
+          updatedAt: new Date(),
+        };
+        blogPosts[blogPostIndex] = updatedBlogPost;
+        writeFile(blogPosts);
+        res.send(updatedBlogPost);
+      } catch (error) {
+        next(error);
       }
-      const previousBlogPostData = fileasJSON[blogPostIndex];
-      const changedBlogPost = {
-        ...previousBlogPostData,
-        ...req.body,
-        updatedAt: new Date(),
-        id: req.params.id,
-      };
-      fileasJSON[blogPostIndex] = changedBlogPost;
-      fs.writeFileSync(blogsJSONPath, JSON.stringify(fileasJSON));
-      res.send(changedBlogPost);
-    } catch (error) {
-      next(error);
     }
-  })
+  )
   .delete('/blogPosts/:id', (req, res, next) => {
     try {
-      const fileasBuffer = fs.readFileSync(blogsJSONPath);
-      const fileasAString = fileasBuffer.toString();
-      const fileasJSON = JSON.parse(fileasAString);
-      const blogPost = fileasJSON.find(
-        (blogPost) => blogPost.id === req.params.id
-      );
-      if (!blogPost) {
-        res
+      const blogPostIndex = findBlogPostDetails('id', req.params.id, true);
+      if (blogPostIndex === -1)
+        return res
           .status(404)
-          .send({ message: `BlogPost with ${req.params.id} is not found!` });
-      }
-      const filteredBlogPosts = fileasJSON.filter(
-        (blogPost) => blogPost.id !== req.params.id
-      );
-      fs.writeFileSync(blogsJSONPath, JSON.stringify(filteredBlogPosts));
+          .send({ message: `Blog post with ID ${req.params.id} not found!` });
+      blogPosts.splice(blogPostIndex, 1);
+      writeFile(blogPosts);
       res.status(204).send();
     } catch (error) {
       next(error);

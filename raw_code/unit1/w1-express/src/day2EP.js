@@ -13,19 +13,15 @@ const authorsJSONPath = join(
   'authors.json'
 );
 
-const fileasBuffer = fs.readFileSync(authorsJSONPath);
-
-const authors = JSON.parse(fileasBuffer);
-
-function findAuthorDetails(property, value, returnIndex = false) {
-  if (returnIndex) {
-    return authors.findIndex((author) => author[property] === value);
-  }
-  return authors.find((author) => author[property] === value);
-}
+const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
 
 function writeFile(updatedAuthors) {
   fs.writeFileSync(authorsJSONPath, JSON.stringify(updatedAuthors));
+}
+function findAuthorDetails(property, value, returnIndex = false) {
+  return returnIndex
+    ? authors.findIndex((author) => author[property] === value)
+    : authors.find((author) => author[property] === value);
 }
 
 // Routes ---------------------------------------------------------------------
