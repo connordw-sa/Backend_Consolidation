@@ -1,30 +1,12 @@
 // Imports --------------------------------------------------------------------
 import express from "express";
-import fs from "fs-extra";
 import uniqid from "uniqid";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-
-// Variables ------------------------------------------------------------------
-const dayTwoRouter = express.Router();
-
-const authorsJSONPath = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "authors.json"
-);
-
-const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
-
-function writeFile(updatedAuthors) {
-  fs.writeFileSync(authorsJSONPath, JSON.stringify(updatedAuthors));
-}
-function findAuthorDetails(property, value, returnIndex = false) {
-  return returnIndex
-    ? authors.findIndex((author) => author[property] === value)
-    : authors.find((author) => author[property] === value);
-}
+import { writeFile, findAuthorDetails, authors } from "./day2lib.js";
 
 // Routes ---------------------------------------------------------------------
+
+const dayTwoRouter = express.Router();
+
 export default dayTwoRouter
   .get("/authors", (req, res, next) => {
     try {

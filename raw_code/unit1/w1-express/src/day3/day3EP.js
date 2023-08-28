@@ -1,65 +1,19 @@
 // Imports --------------------------------------------------------------------
-import express from 'express';
-import createError from 'http-errors';
-import fs from 'fs-extra';
-import uniqid from 'uniqid';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { checkSchema, validationResult } from 'express-validator';
-
-// Variables ------------------------------------------------------------------
-const dayThreeRouter = express.Router();
-
-const blogPostsJSONPath = join(
-  dirname(fileURLToPath(import.meta.url)),
-  'blogPosts.json'
-);
-
-const blogPosts = JSON.parse(fs.readFileSync(blogPostsJSONPath));
-
-function writeFile(updatedBlogPosts) {
-  fs.writeFileSync(blogPostsJSONPath, JSON.stringify(updatedBlogPosts));
-}
-
-function findBlogPostDetails(property, value, returnIndex = false) {
-  return returnIndex
-    ? blogPosts.findIndex((blogPost) => blogPost[property] === value)
-    : blogPosts.find((blogPost) => blogPost[property] === value);
-}
-
-// Schema ---------------------------------------------------------------------
-
-const blogSchema = {
-  category: {
-    in: ['body'],
-    isString: {
-      errorMessage: 'Category is required',
-    },
-  },
-  title: {
-    in: ['body'],
-    isString: {
-      errorMessage: 'Title is required',
-    },
-  },
-};
-
-const checkBlogPostSchema = checkSchema(blogSchema);
-
-const checkValidationResult = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    next(
-      createError(400, 'Error during blog post validation', { message: errors })
-    );
-  } else {
-    next();
-  }
-}; 
+import express from "express";
+import uniqid from "uniqid";
+import {
+  writeFile,
+  findBlogPostDetails,
+  blogPosts,
+  checkValidationResult,
+  checkBlogPostSchema,
+} from "./day3lib.js";
 
 // Routes ---------------------------------------------------------------------
+const dayThreeRouter = express.Router();
+
 export default dayThreeRouter
-  .get('/blogPosts', (req, res, next) => {
+  .get("/blogPosts", (req, res, next) => {
     try {
       const { title, authorName } = req.query;
       const filteredPosts = title
@@ -81,9 +35,9 @@ export default dayThreeRouter
       next(error);
     }
   })
-  .get('/blogPosts/:id', (req, res, next) => {
+  .get("/blogPosts/:id", (req, res, next) => {
     try {
-      const blogPost = findBlogPostDetails('id', req.params.id);
+      const blogPost = findBlogPostDetails("id", req.params.id);
       if (!blogPost)
         return res
           .status(404)
@@ -94,7 +48,7 @@ export default dayThreeRouter
     }
   })
   .post(
-    '/blogPosts',
+    "/blogPosts",
     checkBlogPostSchema,
     checkValidationResult,
     (req, res, next) => {
@@ -114,12 +68,12 @@ export default dayThreeRouter
     }
   )
   .put(
-    '/blogPosts/:id',
+    "/blogPosts/:id",
     checkBlogPostSchema,
     checkValidationResult,
     (req, res, next) => {
       try {
-        const blogPostIndex = findBlogPostDetails('id', req.params.id, true);
+        const blogPostIndex = findBlogPostDetails("id", req.params.id, true);
         if (blogPostIndex === -1)
           return res
             .status(404)
@@ -138,9 +92,9 @@ export default dayThreeRouter
       }
     }
   )
-  .delete('/blogPosts/:id', (req, res, next) => {
+  .delete("/blogPosts/:id", (req, res, next) => {
     try {
-      const blogPostIndex = findBlogPostDetails('id', req.params.id, true);
+      const blogPostIndex = findBlogPostDetails("id", req.params.id, true);
       if (blogPostIndex === -1)
         return res
           .status(404)

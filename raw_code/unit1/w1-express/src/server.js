@@ -1,18 +1,20 @@
-import express from 'express';
-import listEndPoint from 'express-list-endpoints';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import authorsRouter from './day2EP.js';
-import blogsRouter from './day3EP.js';
-import { errorHandler } from './errorHandlers.js';
+import express from "express";
+import listEndPoint from "express-list-endpoints";
+import dotenv from "dotenv";
+import cors from "cors";
+import authorsRouter from "./day2/day2EP.js";
+import blogsRouter from "./day3/day3EP.js";
+import dayFourRouter from "./day4/day4EP.js";
+import { errorHandler } from "./errorHandlers.js";
 
 dotenv.config();
 const server = express();
 
 server.use(cors());
 server.use(express.json());
-server.use('/dayTwo', authorsRouter);
-server.use('/dayThree', blogsRouter);
+server.use("/dayTwo", authorsRouter);
+server.use("/dayThree", blogsRouter);
+server.use("/dayFour", dayFourRouter);
 server.use(errorHandler);
 
 const port = process.env.PORT;
