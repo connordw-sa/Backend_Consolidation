@@ -11,7 +11,7 @@ import {
   writeBlogPosts,
   writeAuthorPicture,
   writeBlogPostPicture,
-} from "./fs-tools.js";
+} from "./day4lib.js";
 
 // Routes ---------------------------------------------------------------------
 
