@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import uniqid from 'uniqid';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { checkBlogPostSchema, checkValidationResult } from './day3Validator.js';
+import { checkSchema, validationResult } from 'express-validator';
 
 // Variables ------------------------------------------------------------------
 const dayThreeRouter = express.Router();
@@ -26,6 +26,36 @@ function findBlogPostDetails(property, value, returnIndex = false) {
     ? blogPosts.findIndex((blogPost) => blogPost[property] === value)
     : blogPosts.find((blogPost) => blogPost[property] === value);
 }
+
+// Schema ---------------------------------------------------------------------
+
+const blogSchema = {
+  category: {
+    in: ['body'],
+    isString: {
+      errorMessage: 'Category is required',
+    },
+  },
+  title: {
+    in: ['body'],
+    isString: {
+      errorMessage: 'Title is required',
+    },
+  },
+};
+
+const checkBlogPostSchema = checkSchema(blogSchema);
+
+const checkValidationResult = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    next(
+      createError(400, 'Error during blog post validation', { message: errors })
+    );
+  } else {
+    next();
+  }
+}; 
 
 // Routes ---------------------------------------------------------------------
 export default dayThreeRouter
