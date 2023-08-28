@@ -1,16 +1,16 @@
 // Imports --------------------------------------------------------------------
-import express from 'express';
-import fs from 'fs-extra';
-import uniqid from 'uniqid';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import express from "express";
+import fs from "fs-extra";
+import uniqid from "uniqid";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
 // Variables ------------------------------------------------------------------
 const dayTwoRouter = express.Router();
 
 const authorsJSONPath = join(
   dirname(fileURLToPath(import.meta.url)),
-  'authors.json'
+  "authors.json"
 );
 
 const authors = JSON.parse(fs.readFileSync(authorsJSONPath));
@@ -26,16 +26,16 @@ function findAuthorDetails(property, value, returnIndex = false) {
 
 // Routes ---------------------------------------------------------------------
 export default dayTwoRouter
-  .get('/authors', (req, res, next) => {
+  .get("/authors", (req, res, next) => {
     try {
       res.send(authors);
     } catch (error) {
       next(error);
     }
   })
-  .get('/authors/:id', (req, res, next) => {
+  .get("/authors/:id", (req, res, next) => {
     try {
-      const author = findAuthorDetails('id', req.params.id);
+      const author = findAuthorDetails("id", req.params.id);
       if (!author)
         return res
           .status(404)
@@ -45,9 +45,9 @@ export default dayTwoRouter
       next(error);
     }
   })
-  .post('/authors', (req, res, next) => {
+  .post("/authors", (req, res, next) => {
     try {
-      const authorSameEmail = findAuthorDetails('email', req.body.email);
+      const authorSameEmail = findAuthorDetails("email", req.body.email);
       if (authorSameEmail) {
         return res
           .status(409)
@@ -67,9 +67,9 @@ export default dayTwoRouter
       next(error);
     }
   })
-  .put('/authors/:id', (req, res, next) => {
+  .put("/authors/:id", (req, res, next) => {
     try {
-      const authorIndex = findAuthorDetails('id', req.params.id, true);
+      const authorIndex = findAuthorDetails("id", req.params.id, true);
       if (authorIndex === -1) {
         return res
           .status(404)
@@ -87,9 +87,9 @@ export default dayTwoRouter
       next(error);
     }
   })
-  .delete('/authors/:id', (req, res, next) => {
+  .delete("/authors/:id", (req, res, next) => {
     try {
-      const authorIndex = findAuthorDetails('id', req.params.id, true);
+      const authorIndex = findAuthorDetails("id", req.params.id, true);
       if (authorIndex === -1) {
         return res
           .status(404)
