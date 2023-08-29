@@ -1,23 +1,23 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 export const errorHandler = (err, req, res, next) => {
-  console.log('Error:', err.message);
+  console.log("Error:", err.message);
 
   switch (true) {
     case err.status === 400:
     case err instanceof mongoose.Error.ValidationError:
-      res.status(400).send({ message: 'Bad request' });
+      res.status(400).send({ message: "Bad request" });
       break;
     case err.status === 401:
-      res.status(401).send({ message: 'Unauthorized ' });
+      res.status(401).send({ message: "Unauthorized " });
       break;
     case err.status === 403:
-      res.status(403).send({ success: false, message: 'Forbidden' });
+      res.status(403).send({ success: false, message: "Forbidden" });
       break;
     case err.status === 404:
-      res.status(404).send({ message: 'Not found' });
+      res.status(404).send({ message: "We couldn't find that for you!" });
       break;
     default:
-      res.status(500).send({ message: 'Server Error' });
+      res.status(500).send({ message: "Server Error" });
   }
 };
