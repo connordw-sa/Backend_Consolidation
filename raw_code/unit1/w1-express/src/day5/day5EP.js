@@ -96,18 +96,8 @@ export default dayFiveRouter
       try {
         const fileExt = extname(req.file.originalname);
         const fileName = req.params.id + fileExt;
-        await writeProductPicture(fileName, req.file.buffer);
-        const products = await getProducts();
-        const product = products.find(
-          (product) => product._id === req.params.id
-        );
-        if (product) {
-          product.imageUrl = `http://localhost:3001/img/products/${fileName}`;
-          await writeProducts(products);
-          res.send(product);
-        } else {
-          next(httpError(404, { message: "Product not found!" }));
-        }
+        await writeProductPicture(req.params.id, fileName, req.file.buffer);
+        res.send({ message: "Product picture uploaded successfully" });
       } catch (error) {
         next(error);
       }

@@ -45,8 +45,16 @@ export const getProducts = async (category, productId) => {
 export const writeProducts = async (content) =>
   await writeJSON(productsJSONPath, content);
 
-export const writeProductPicture = async (fileName, content) =>
-  await writeFile(join(publicFolderProductsPath, fileName), content);
+export const writeProductPicture = async (productId, fileName, content) => {
+  const products = await getProducts();
+  const index = products.findIndex((product) => product._id === productId);
+  if (index !== -1) {
+    products[index].imageUrl = `http://localhost:3001/img/products/${fileName}`;
+    products[index].updatedAt = new Date(); // Set updatedAt here
+    await writeFile(join(publicFolderProductsPath, fileName), content);
+    await writeProducts(products);
+  }
+};
 
 export const deleteProduct = async (productId) => {
   const products = await getProducts();
