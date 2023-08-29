@@ -1,37 +1,16 @@
-// ENDPOINTS
-
-// POST  Review /products/:productId/reviews
-
-// For both Products and Reviews, the field createdAt should be set when adding the current product/review to the list. (server side)
-// The updatedAt should be equal to createdAt on creation and then change for each and every PUT on that very item.  (server side)
-// Remember to validate everything that comes from the FE
-// Test all the endpoints, also edge cases, and handle errors properly
-
-// Extras
-// GET list of  Reviews /products/:productId/reviews/
-// GET single Review /products/:productId/reviews/:reviewId
-// PUT  update Review /products/:productId/reviews/:reviewId
-// DELETE  Review /products/:productId/reviews/:reviewId
-// Filter by a category, GET /products?category=horror => should return only products belonging to the specified category
-
 // Imports --------------------------------------------------------------------
 import express from "express";
 import multer from "multer";
 import { extname } from "path";
-import httpError from "http-errors";
 import uniqid from "uniqid";
+
 import {
   getProducts,
   writeProducts,
   writeProductPicture,
   deleteProduct,
   updateProduct,
-  getReviews,
-  writeReviews,
-  updateReview,
-  deleteReview,
   checkProductSchema,
-  checkReviewSchema,
   checkValidationResult,
 } from "./day5lib.js";
 
@@ -102,4 +81,115 @@ export default dayFiveRouter
         next(error);
       }
     }
-  );
+  )
+  .post("/products/:id/reviews", async (req, res, next) => {
+    try {
+      const products = await getProducts();
+      const index = products.findIndex(
+        (product) => product._id === req.params.id
+      );
+      if (index !== -1) {
+        if (!products[index].reviews) {
+          products[index].reviews = [];
+        }
+        if (req.body.rate > 5 || req.body.rate < 1) {
+          res.status(400).send({ message: "Rate must be between 1 and 5" });
+          return;
+        }
+        products[index].reviews.push({
+          ...req.body,
+          _id: uniqid(),
+          createdAt: new Date(),
+        });
+        await writeProducts(products);
+        res.status(201).send(products[index]);
+      }
+    } catch (error) {
+      next(error);
+    }
+  })
+  .get("/products/:id/reviews", async (req, res, next) => {
+    try {
+      const products = await getProducts();
+      const product = products.find((product) => product._id === req.params.id);
+      if (product) {
+        res.send(product.reviews);
+      } else {
+        res.status(404).send({ message: "Product not found" });
+      }
+    } catch (error) {
+      next(error);
+    }
+  })
+  .get("/products/:id/reviews/:reviewId", async (req, res, next) => {
+    try {
+      const products = await getProducts();
+      const product = products.find((product) => product._id === req.params.id);
+      if (product) {
+        const review = product.reviews.find(
+          (review) => review._id === req.params.reviewId
+        );
+        if (review) {
+          res.send(review);
+        } else {
+          res.status(404).send({ message: "Review not found" });
+        }
+      } else {
+        res.status(404).send({ message: "Product not found" });
+      }
+    } catch (error) {
+      next(error);
+    }
+  })
+  .put("/products/:id/reviews/:reviewId", async (req, res, next) => {
+    try {
+      const products = await getProducts();
+      const productIndex = products.findIndex(
+        (product) => product._id === req.params.id
+      );
+      if (productIndex !== -1) {
+        const reviewIndex = products[productIndex].reviews.findIndex(
+          (review) => review._id === req.params.reviewId
+        );
+        if (reviewIndex !== -1) {
+          products[productIndex].reviews[reviewIndex] = {
+            ...products[productIndex].reviews[reviewIndex],
+            ...req.body,
+            updatedAt: new Date(),
+          };
+          await writeProducts(products);
+          res.send(products[productIndex]);
+        } else {
+          res.status(404).send({ message: "Review not found" });
+        }
+      } else {
+        res.status(404).send({ message: "Product not found" });
+      }
+    } catch (error) {
+      next(error);
+    }
+  })
+  .delete("/products/:id/reviews/:reviewId", async (req, res, next) => {
+    try {
+      const products = await getProducts();
+      const productIndex = products.findIndex(
+        (product) => product._id === req.params.id
+      );
+      if (productIndex !== -1) {
+        const reviewIndex = products[productIndex].reviews.findIndex(
+          (review) => review._id === req.params.reviewId
+        );
+        if (reviewIndex !== -1) {
+          products[productIndex].reviews.splice(reviewIndex, 1);
+          await writeProducts(products);
+          res.status(204).send();
+        } else {
+          res.status(404).send({ message: "Review not found" });
+        }
+      } else {
+        res.status(404).send({ message: "Product not found" });
+      }
+    } catch (error) {
+      next(error);
+    }
+  });

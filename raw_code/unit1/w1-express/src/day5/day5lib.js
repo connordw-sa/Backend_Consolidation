@@ -37,7 +37,7 @@ export const getProducts = async (category, productId) => {
     if (!product) {
       throw httpError(404, { message: "Product not found!" });
     }
-    return [product];
+    return product;
   }
   return products;
 };
@@ -50,7 +50,7 @@ export const writeProductPicture = async (productId, fileName, content) => {
   const index = products.findIndex((product) => product._id === productId);
   if (index !== -1) {
     products[index].imageUrl = `http://localhost:3001/img/products/${fileName}`;
-    products[index].updatedAt = new Date(); // Set updatedAt here
+    products[index].updatedAt = new Date();
     await writeFile(join(publicFolderProductsPath, fileName), content);
     await writeProducts(products);
   }
@@ -73,43 +73,6 @@ export const updateProduct = async (productId, newProductData) => {
     updatedAt: new Date(),
   };
   await writeProducts(products);
-};
-
-//Reviews
-
-const reviewsJSONPath = join(
-  dirname(dirname(fileURLToPath(import.meta.url))),
-  "reviews.json"
-);
-
-export const getReviews = async (productId, reviewId) => {
-  const reviews = await readJSON(reviewsJSONPath);
-  if (productId) {
-    return reviews.filter((review) => review.productId === productId);
-  }
-  if (productId && reviewId) {
-    return reviews.filter((review) => review._id === reviewId);
-  }
-  return reviews;
-};
-
-export const writeReviews = async (content) =>
-  await writeJSON(reviewsJSONPath, content);
-
-export const updateReview = async (productId, reviewId, newReviewData) => {
-  const reviews = await getReviews();
-  const index = reviews.findIndex((review) => review._id === reviewId);
-  if (index !== -1) {
-    const updatedReview = { ...reviews[index], ...newReviewData };
-    reviews[index] = updatedReview;
-    await writeReviews(reviews);
-  }
-};
-
-export const deleteReview = async (productId, reviewId) => {
-  const reviews = await getReviews();
-  const filteredReviews = reviews.filter((review) => review._id !== reviewId);
-  await writeReviews(filteredReviews);
 };
 
 // Schema ---------------------------------------------------------------------
@@ -148,23 +111,6 @@ const productSchema = {
 };
 
 export const checkProductSchema = checkSchema(productSchema);
-
-const reviewSchema = {
-  comment: {
-    in: ["body"],
-    isString: {
-      errorMessage: "Comment is required",
-    },
-  },
-  rate: {
-    in: ["body"],
-    isNumeric: {
-      errorMessage: "Rate is required",
-    },
-  },
-};
-
-export const checkReviewSchema = checkSchema(reviewSchema);
 
 export const checkValidationResult = (req, res, next) => {
   const errors = validationResult(req);
