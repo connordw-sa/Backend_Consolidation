@@ -19,7 +19,7 @@ server.use("/dayFour", dayFourRouter);
 server.use("/dayFive", dayFiveRouter);
 server.use(errorHandler);
 
-const port = process.env.PORT;
+const port = 3005;
 
 server.listen(port, () => {
   console.log(listEndPoint(server));
