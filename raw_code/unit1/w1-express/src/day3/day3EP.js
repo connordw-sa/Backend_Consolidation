@@ -5,8 +5,8 @@ import {
   writeFile,
   findBlogPostDetails,
   blogPosts,
-  // checkValidationResult,
-  // checkBlogPostSchema,
+  checkValidationResult,
+  checkBlogPostSchema,
 } from "./day3lib.js";
 
 // Routes ---------------------------------------------------------------------
@@ -49,8 +49,8 @@ export default dayThreeRouter
   })
   .post(
     "/blogPosts",
-    // checkBlogPostSchema,
-    // checkValidationResult,
+    checkBlogPostSchema,
+    checkValidationResult,
     (req, res, next) => {
       try {
         const blogPost = {
@@ -69,8 +69,8 @@ export default dayThreeRouter
   )
   .put(
     "/blogPosts/:id",
-    // checkBlogPostSchema,
-    // checkValidationResult,
+    checkBlogPostSchema,
+    checkValidationResult,
     (req, res, next) => {
       try {
         const blogPostIndex = findBlogPostDetails("id", req.params.id, true);

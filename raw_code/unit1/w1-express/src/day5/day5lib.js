@@ -3,7 +3,7 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import fs from "fs-extra";
 import createError from "http-errors";
-// import { checkSchema, validationResult } from "express-validator";
+import { checkSchema, validationResult } from "express-validator";
 
 // Variables ------------------------------------------------------------------
 
@@ -75,48 +75,48 @@ export const updateProduct = async (productId, newProductData) => {
   await writeProducts(products);
 };
 
-// // Schema ---------------------------------------------------------------------
+// Schema ---------------------------------------------------------------------
 
-// const productSchema = {
-//   name: {
-//     in: ["body"],
-//     isString: {
-//       errorMessage: "Name is required",
-//     },
-//   },
-//   description: {
-//     in: ["body"],
-//     isString: {
-//       errorMessage: "Description is required",
-//     },
-//   },
-//   brand: {
-//     in: ["body"],
-//     isString: {
-//       errorMessage: "Brand is required",
-//     },
-//   },
-//   price: {
-//     in: ["body"],
-//     isNumeric: {
-//       errorMessage: "Price is required",
-//     },
-//   },
-//   category: {
-//     in: ["body"],
-//     isString: {
-//       errorMessage: "Category is required",
-//     },
-//   },
-// };
+const productSchema = {
+  name: {
+    in: ["body"],
+    isString: {
+      errorMessage: "Name is required",
+    },
+  },
+  description: {
+    in: ["body"],
+    isString: {
+      errorMessage: "Description is required",
+    },
+  },
+  brand: {
+    in: ["body"],
+    isString: {
+      errorMessage: "Brand is required",
+    },
+  },
+  price: {
+    in: ["body"],
+    isNumeric: {
+      errorMessage: "Price is required",
+    },
+  },
+  category: {
+    in: ["body"],
+    isString: {
+      errorMessage: "Category is required",
+    },
+  },
+};
 
-// export const checkProductSchema = checkSchema(productSchema);
+export const checkProductSchema = checkSchema(productSchema);
 
-// export const checkValidationResult = (req, res, next) => {
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//     next(createError(400, "Error during validation", { message: errors }));
-//   } else {
-//     next();
-//   }
-// };
+export const checkValidationResult = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    next(createError(400, "Error during validation", { message: errors }));
+  } else {
+    next();
+  }
+};

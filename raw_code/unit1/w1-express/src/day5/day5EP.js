@@ -10,8 +10,8 @@ import {
   writeProductPicture,
   deleteProduct,
   updateProduct,
-  // checkProductSchema,
-  // checkValidationResult,
+  checkProductSchema,
+  checkValidationResult,
 } from "./day5lib.js";
 
 // Routes ---------------------------------------------------------------------
@@ -28,8 +28,8 @@ export default dayFiveRouter
   })
   .post(
     "/products",
-    // checkProductSchema,
-    // checkValidationResult,
+    checkProductSchema,
+    checkValidationResult,
     async (req, res, next) => {
       try {
         const products = await getProducts();
@@ -49,8 +49,8 @@ export default dayFiveRouter
   )
   .put(
     "/products/:id",
-    // checkProductSchema,
-    // checkValidationResult,
+    checkProductSchema,
+    checkValidationResult,
     async (req, res, next) => {
       try {
         await updateProduct(req.params.id, req.body);
