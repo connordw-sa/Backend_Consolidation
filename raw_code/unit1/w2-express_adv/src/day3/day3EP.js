@@ -6,7 +6,6 @@ import express from "express";
 import fs from "fs-extra";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { get } from "http";
 
 const { readJSON, writeJSON, writeFile } = fs;
 
